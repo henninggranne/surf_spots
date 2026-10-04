@@ -1,0 +1,222 @@
+<title>__TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a light-table of satellite frames. Truths pinned on top, candidates in a grid below,
+   each frame with its sea state and a three-way verdict. */
+:root {
+  --bg: #eef2f3;
+  --surface: #ffffff;
+  --fg: #142229;
+  --muted: #56676e;
+  --line: #d3dcdf;
+  --accent: #0b6e7a;
+  --accent-ink: #ffffff;
+  --yes: #1d7a46;
+  --no: #a8402f;
+  --maybe: #8a6a12;
+  --truth: #0b6e7a;
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d171b; --surface: #15232a; --fg: #e3ecee; --muted: #93a6ad; --line: #26363d;
+    --accent: #4cb8c4; --accent-ink: #062126; --yes: #5cc48a; --no: #e77c69; --maybe: #d8b24c;
+    --truth: #4cb8c4; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d171b; --surface: #15232a; --fg: #e3ecee; --muted: #93a6ad; --line: #26363d;
+  --accent: #4cb8c4; --accent-ink: #062126; --yes: #5cc48a; --no: #e77c69; --maybe: #d8b24c;
+  --truth: #4cb8c4; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 15px/1.5 var(--f-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 64px; display: grid; gap: 32px; }
+header { display: grid; gap: 10px; }
+h1 { font: 600 2.4rem/1.05 var(--f-display); letter-spacing: .01em; margin: 0; text-wrap: balance; }
+h2 { font: 600 1.35rem/1.2 var(--f-display); letter-spacing: .03em; text-transform: uppercase; margin: 0; }
+.lede { margin: 0; max-width: 68ch; color: var(--muted); }
+.meta { font: 13px/1.5 var(--f-mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg);
+  border-bottom: 1px solid var(--line); padding-block: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.progress { font: 500 14px var(--f-mono); font-variant-numeric: tabular-nums; }
+.save { font-size: 13px; color: var(--muted); }
+.save.warn { color: var(--no); }
+.bar .spacer { flex: 1; }
+button { font: 500 14px var(--f-body); cursor: pointer; border-radius: 6px; }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); padding: 6px 12px; }
+section { display: grid; gap: 14px; }
+.grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
+.grid.truths { grid-template-columns: repeat(auto-fill, minmax(min(100%, 480px), 1fr)); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; display: grid; min-width: 0; }
+.card.truth { border-color: var(--truth); }
+.card[data-v="yes"] { box-shadow: inset 0 -4px 0 var(--yes); }
+.card[data-v="no"] { box-shadow: inset 0 -4px 0 var(--no); }
+.card[data-v="maybe"] { box-shadow: inset 0 -4px 0 var(--maybe); }
+.shot { display: block; width: 100%; aspect-ratio: 472 / 356; max-width: 100%; object-fit: cover; cursor: zoom-in; background: #0a1418; border: 0; padding: 0; }
+.shot img { width: 100%; height: 100%; display: block; }
+.body { padding: 12px 14px 14px; display: grid; gap: 10px; }
+.top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.date { font: 600 1.3rem/1 var(--f-display); letter-spacing: .02em; }
+.tag { font: 500 11px/1 var(--f-mono); text-transform: uppercase; letter-spacing: .08em; padding: 4px 6px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); }
+.tag.t { color: var(--truth); border-color: var(--truth); }
+.top a { margin-left: auto; font-size: 13px; color: var(--accent); }
+dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font: 13px/1.45 var(--f-mono); font-variant-numeric: tabular-nums; }
+dt { color: var(--muted); }
+dd { margin: 0; }
+.wc { font-family: var(--f-body); font-weight: 600; }
+.wc.good { color: var(--yes); }
+.wc.poor { color: var(--maybe); }
+.verdict { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.verdict button { padding: 8px 6px; border: 1px solid var(--line); background: transparent; color: var(--fg); }
+.verdict button[aria-pressed="true"][data-v="yes"] { background: var(--yes); border-color: var(--yes); color: var(--surface); }
+.verdict button[aria-pressed="true"][data-v="no"] { background: var(--no); border-color: var(--no); color: var(--surface); }
+.verdict button[aria-pressed="true"][data-v="maybe"] { background: var(--maybe); border-color: var(--maybe); color: var(--surface); }
+.verdict button[aria-pressed="true"][data-v="cantsee"] { background: var(--muted); border-color: var(--muted); color: var(--surface); }
+.card[data-v="cantsee"] { box-shadow: inset 0 -4px 0 var(--muted); }
+.lightbox { position: fixed; inset: 0; z-index: 20; background: rgba(5, 12, 15, .92); display: grid; place-items: center; padding: 16px; cursor: zoom-out; }
+.lightbox img { max-width: min(100%, 1400px); max-height: 88vh; width: 100%; object-fit: contain; }
+.lightbox p { color: #e3ecee; font: 500 15px var(--f-mono); margin: 8px 0 0; text-align: center; }
+@media (prefers-reduced-motion: no-preference) { .card { transition: box-shadow .15s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Jomfruland swell check · __YEAR__</h1>
+    <p class="lede">Sentinel-2 passes from __YEAR__ over the south-east shore of Jomfruland, ranked by how much they look like the known good days: white water along the shore and swell lines on open water. Mark each one Surf, Unsure, No, or Can't see (cloud or glint hides the shore). Your answers become new truths for the next round.</p>
+    <div class="meta">
+      <span>Frame 9.540–9.622°E, 58.830–58.862°N</span>
+      <span>≈ 4.7 × 3.5 km, 10 m pixels</span>
+      <span>Pass ≈ 10–11 UTC</span>
+      <span>Sea state at 10 UTC, Open-Meteo</span>
+    </div>
+  </header>
+
+  <div class="bar">
+    <span class="progress" id="progress">0 of 0 marked</span>
+    <span class="save" id="save">Connecting…</span>
+    <span class="spacer"></span>
+    <button class="ghost" id="copy" type="button">Copy answers</button>
+  </div>
+
+  <section>
+    <h2>Known good days</h2>
+    <div class="grid truths" id="truths"></div>
+  </section>
+  <section>
+    <h2>Candidates</h2>
+    <p class="lede" style="margin:0">Top __TOP__ of __USABLE__ cloud-free frames, best match first. Click a frame to enlarge it, or open the date in Copernicus Browser for full colour and zoom.</p>
+    <div class="grid" id="cands"></div>
+  </section>
+</div>
+<div class="lightbox" id="lb" hidden><div><img id="lbimg" alt=""><p id="lbcap"></p></div></div>
+
+<script>
+const ITEMS = __DATA__;
+const answers = {};               // date -> "yes" | "no" | "maybe"
+let db = null;
+
+const COMPASS = ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+const dir = d => d == null ? "" : COMPASS[Math.round(d / 22.5) % 16] + " " + Math.round(d) + "°";
+const f = (v, n = 1) => v == null ? "–" : Number(v).toFixed(n);
+
+function card(it) {
+  const el = document.createElement("article");
+  el.className = "card" + (it.truth ? " truth" : "");
+  el.dataset.date = it.date;
+  const longDate = new Date(it.date + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+  el.innerHTML = `
+    <button class="shot" type="button" aria-label="Enlarge ${it.date}"><img src="${it.img}" alt="Sentinel-2 true colour, ${it.date}" loading="lazy"></button>
+    <div class="body">
+      <div class="top">
+        <span class="date">${longDate}</span>
+        <span class="tag ${it.truth ? "t" : ""}">${it.truth ? "Known good" : it.rank == null ? "Partly cloudy" : "Rank " + it.rank}</span>
+        <a href="${it.link}" target="_blank" rel="noopener">Copernicus ↗</a>
+      </div>
+      <dl>
+        <dt>Waves</dt><dd>${it.hs == null ? "no data" : `${f(it.hs)} m · ${f(it.tp)} s · ${dir(it.wdir)}`}</dd>
+        <dt>Wind</dt><dd>${it.wind == null ? "no data" : `${f(it.wind)} m/s from ${dir(it.winddir)} · gust ${f(it.gust, 0)}`}</dd>
+        <dt>Shore</dt><dd>${it.windclass ? `<span class="wc ${it.windclass.good ? "good" : "poor"}">${it.windclass.name}</span>` : "–"}</dd>
+        <dt>Image</dt><dd>foam ${f((it.foam ?? 0) * 100, 0)}% · whitecaps ${it.whitecaps == null ? "–" : f(it.whitecaps * 100, 1) + "%"} · texture ${f(it.texture, 3)}</dd>
+      </dl>
+      ${it.truth ? "" : `<div class="verdict" role="group" aria-label="Verdict for ${it.date}">
+        <button type="button" data-v="yes" aria-pressed="false">Surf</button>
+        <button type="button" data-v="maybe" aria-pressed="false">Unsure</button>
+        <button type="button" data-v="no" aria-pressed="false">No</button>
+        <button type="button" data-v="cantsee" aria-pressed="false" title="Cloud, haze or glint hides the shore">Can't see</button>
+      </div>`}
+    </div>`;
+  el.querySelector(".shot").addEventListener("click", () => {
+    document.getElementById("lbimg").src = it.img;
+    document.getElementById("lbcap").textContent = `${it.date} · ${it.truth ? "known good" : it.rank == null ? "partly cloudy" : "rank " + it.rank}`;
+    document.getElementById("lb").hidden = false;
+  });
+  el.querySelectorAll(".verdict button").forEach(b => b.addEventListener("click", () => choose(it, b.dataset.v)));
+  return el;
+}
+
+function paint() {
+  document.querySelectorAll(".card").forEach(el => {
+    const v = answers[el.dataset.date];
+    if (v) el.dataset.v = v; else delete el.dataset.v;
+    el.querySelectorAll(".verdict button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === v)));
+  });
+  const cands = ITEMS.filter(i => !i.truth);
+  const n = cands.filter(i => answers[i.date]).length;
+  const yes = cands.filter(i => answers[i.date] === "yes").length;
+  document.getElementById("progress").textContent = `${n} of ${cands.length} marked · ${yes} surf`;
+}
+
+function status(text, warn) {
+  const s = document.getElementById("save");
+  s.textContent = text;
+  s.classList.toggle("warn", !!warn);
+}
+
+async function choose(it, v) {
+  const next = answers[it.date] === v ? null : v;   // click again to clear
+  if (next) answers[it.date] = next; else delete answers[it.date];
+  paint();
+  try { localStorage.setItem("answers", JSON.stringify(answers)); } catch (e) {}
+  if (!db) return;
+  try {
+    const ref = db.collection("labels").doc(it.date);
+    if (next) await ref.set({ date: it.date, verdict: next, rank: it.rank, at: new Date().toISOString() });
+    else await ref.delete();
+    status("Saved");
+  } catch (e) {
+    status("Couldn't save that answer (" + (e && e.code || "error") + "). Use Copy answers instead.", true);
+  }
+}
+
+document.getElementById("lb").addEventListener("click", () => { document.getElementById("lb").hidden = true; });
+document.addEventListener("keydown", e => { if (e.key === "Escape") document.getElementById("lb").hidden = true; });
+
+document.getElementById("copy").addEventListener("click", async () => {
+  const lines = ITEMS.filter(i => !i.truth && answers[i.date]).map(i => `${i.date} ${answers[i.date]}`);
+  const text = lines.join("\n") || "(no answers yet)";
+  try { await navigator.clipboard.writeText(text); status("Copied " + lines.length + " answers"); }
+  catch (e) { status("Copy blocked by the browser. Answers: " + lines.join(", "), true); }
+});
+
+ITEMS.filter(i => i.truth).forEach(i => document.getElementById("truths").append(card(i)));
+ITEMS.filter(i => !i.truth).forEach(i => document.getElementById("cands").append(card(i)));
+try { Object.assign(answers, JSON.parse(localStorage.getItem("answers") || "{}")); } catch (e) {}
+paint();
+
+(async () => {
+  db = await (window.claude?.use?.("db") ?? null);
+  if (!db) { status("Answers stay in this browser only. Use Copy answers to send them to Claude.", true); return; }
+  status("Answers save automatically");
+  db.collection("labels").onSnapshot(snap => {
+    for (const k of Object.keys(answers)) delete answers[k];
+    snap.docs.forEach(d => { const x = d.data(); if (x && x.verdict) answers[d.id] = x.verdict; });
+    paint();
+  }, e => status("Lost connection to saved answers (" + e.code + ")", true));
+})();
+</script>

@@ -1,0 +1,40 @@
+# Secrets
+secret.txt
+.env
+*.key
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Data
+*.csv
+*.npz
+*.xlsx
+
+# Images and frame caches
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+frames/
+cache_frame/
+
+# Generated reports (keep the template)
+review.html
+review_*.html
+!review_template.html
+
+# Output folders
+sheets/
+verdicts/
+
+# OS / editor / logs
+.DS_Store
+.vscode/
+.idea/
+*.log
